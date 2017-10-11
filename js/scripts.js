@@ -1,4 +1,3 @@
-
 const stickyContainer = document.querySelectorAll('[data-sticky-container]')[0]; // Определяем контейнер для sticky элементов
 
 stickyContainer.stickyKey = stickyContainer.getAttribute('data-sticky-container'); // Сохраняем ключ для идентификации sticky элементов
@@ -6,21 +5,58 @@ stickyContainer.cssProps = window.getComputedStyle(stickyContainer);
 
 const stickyElems = document.querySelectorAll(`[data-sticky="${stickyContainer.stickyKey}"]`); // Определяем sticky элементы
 // это сделано для того. чтобы можно было создавать несколько параллельных или вложенных модулей
+let stickyNumber = -1;
 
 stickyContainer.addEventListener('scroll', function () {
     // проверяем взаимное расположение элементов относительно контейнера
     let topPosition = this.getBoundingClientRect().top;
-
-    stickyElems.forEach(function (elem) {
-        let elemTopPosition = elem.getBoundingClientRect().top;
-
-        if(elemTopPosition - topPosition <= 0) {
-            checkSticky(elem, topPosition);
+    let fixedStickyNumber = stickyNumber;   //сохраняем номер текущего фиксированного элемента
+    switch (stickyNumber) {
+        case -1: { // фиксированных элементов нет
+            let elemTopPosition = stickyElems[0].getBoundingClientRect().top;
+            if(elemTopPosition - topPosition <= 0) {
+                checkSticky(stickyElems[0], 0 ,  topPosition);
+            }
+            break;
         }
-    });
+        case 0: { // фиксированн первый элемент
+            for(let i = fixedStickyNumber; i <= fixedStickyNumber + 1; i++) {
+                let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
+                if(elemTopPosition - topPosition <= 0) {
+                    checkSticky(stickyElems[i], i, topPosition);
+                }
+            }
+            break;
+        }
+        case stickyElems.length - 1: { // фиксированн последний элемент
+            for (let i = stickyElems.length - 2; i <= stickyElems.length - 1; i++ ) {
+                let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
+                if(elemTopPosition - topPosition <= 0) {
+                    checkSticky(stickyElems[i], i, topPosition);
+                }
+            }
+            break;
+        }
+        default: {
+            for(let i = fixedStickyNumber - 1; i <= fixedStickyNumber + 1; i++) {
+                let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
+                if(elemTopPosition - topPosition <= 0) {
+                    checkSticky(stickyElems[i], i, topPosition);
+                }
+            }
+            break;
+        }
+    }
+
+    /* for(let i = 0; i < stickyElems.length; i++) {
+        let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
+        if(elemTopPosition - topPosition <= 0) {
+            checkSticky(stickyElems[i], i , topPosition);
+        }
+    } */
 });
 
-function checkSticky(elem, position) {
+function checkSticky(elem, number, position) {
     // проверяем является ли элемент sticky
     if(!elem.stickyFixed) {
 
@@ -38,10 +74,11 @@ function checkSticky(elem, position) {
         elem.style.position = 'fixed';
         elem.style.top = `${position}px`;
         elem.style.width = stickyContainer.cssProps.width;
+        stickyNumber = number;
 
     } else {
         //если элемент sticky возвращаем ему его позицию в DOM, получаем его якорь и удаляем его
-        let anchorElem = elem.parentElement.querySelector('[data-sticky-anchor]'); //
+        let anchorElem = elem.parentElement.querySelector('[data-sticky-anchor]');
         let anchorTopPosition = anchorElem.getBoundingClientRect().top;
 
         if(anchorTopPosition - position > 0) {
@@ -51,6 +88,7 @@ function checkSticky(elem, position) {
             elem.style.top = '';
             elem.style.width = '';
             elem.stickyFixed = false;
+            stickyNumber = number - 1;
         }
     }
 }
