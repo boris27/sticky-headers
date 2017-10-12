@@ -10,51 +10,34 @@ let stickyNumber = -1;
 stickyContainer.addEventListener('scroll', function () {
     // проверяем взаимное расположение элементов относительно контейнера
     let topPosition = this.getBoundingClientRect().top;
-    let fixedStickyNumber = stickyNumber;   //сохраняем номер текущего фиксированного элемента
     switch (stickyNumber) {
         case -1: { // фиксированных элементов нет
-            let elemTopPosition = stickyElems[0].getBoundingClientRect().top;
-            if(elemTopPosition - topPosition <= 0) {
-                checkSticky(stickyElems[0], 0 ,  topPosition);
-            }
+            checkStickyLoop(0, 0, topPosition);
             break;
         }
         case 0: { // фиксированн первый элемент
-            for(let i = fixedStickyNumber; i <= fixedStickyNumber + 1; i++) {
-                let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
-                if(elemTopPosition - topPosition <= 0) {
-                    checkSticky(stickyElems[i], i, topPosition);
-                }
-            }
+            checkStickyLoop(stickyNumber, stickyNumber + 1, topPosition);
             break;
         }
         case stickyElems.length - 1: { // фиксированн последний элемент
-            for (let i = stickyElems.length - 2; i <= stickyElems.length - 1; i++ ) {
-                let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
-                if(elemTopPosition - topPosition <= 0) {
-                    checkSticky(stickyElems[i], i, topPosition);
-                }
-            }
+            checkStickyLoop(stickyElems.length - 2, stickyElems.length - 1, topPosition);
             break;
         }
         default: {
-            for(let i = fixedStickyNumber - 1; i <= fixedStickyNumber + 1; i++) {
-                let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
-                if(elemTopPosition - topPosition <= 0) {
-                    checkSticky(stickyElems[i], i, topPosition);
-                }
-            }
+            checkStickyLoop(stickyNumber - 1, stickyNumber + 1, topPosition);
             break;
         }
     }
+});
 
-    /* for(let i = 0; i < stickyElems.length; i++) {
+function checkStickyLoop(from, to, topPosition) {
+    for(let i = from; i <= to; i++) {
         let elemTopPosition = stickyElems[i].getBoundingClientRect().top;
         if(elemTopPosition - topPosition <= 0) {
-            checkSticky(stickyElems[i], i , topPosition);
+            checkSticky(stickyElems[i], i, topPosition);
         }
-    } */
-});
+    }
+}
 
 function checkSticky(elem, number, position) {
     // проверяем является ли элемент sticky
@@ -74,7 +57,7 @@ function checkSticky(elem, number, position) {
         elem.style.position = 'fixed';
         elem.style.top = `${position}px`;
         elem.style.width = stickyContainer.cssProps.width;
-        stickyNumber = number;
+        stickyNumber = number; //сохраняем номер текущего фиксированного элемента
 
     } else {
         //если элемент sticky возвращаем ему его позицию в DOM, получаем его якорь и удаляем его
